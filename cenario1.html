@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Protótipo Realista - Loja Virtual</title>
+    <style>
+      :root {
+        --ws-green: #25d366;
+        --primary: #2563eb;
+        --error-red: #ef4444;
+        --bg: #f8fafc;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background-color: var(--bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .card {
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 360px;
+      }
+
+      .step {
+        display: none;
+      }
+      .step.active {
+        display: block;
+      }
+
+      h2 {
+        margin: 0 0 8px 0;
+        color: #1e293b;
+        font-size: 1.5rem;
+      }
+      p {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 1rem;
+      }
+
+      /* Estilo para erro no input */
+      .input-error {
+        border-color: var(--error-red) !important;
+        background-color: #fef2f2;
+      }
+
+      .error-message {
+        color: var(--error-red);
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+        display: none;
+        font-weight: 500;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      button.btn-whatsapp {
+        background-color: var(--ws-green);
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+
+      .link {
+        display: block;
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.85rem;
+        color: var(--primary);
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .loader {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div id="stepLogin" class="step active">
+        <h2>Entrar</h2>
+        <p>Acesse sua conta para finalizar a compra.</p>
+
+        <div id="loginError" class="error-message">
+          ⚠️ Usuário ou senha inválidos.
+        </div>
+
+        <input type="text" id="userEmail" placeholder="E-mail ou Usuário" />
+        <input type="password" id="userPass" placeholder="Senha" />
+
+        <button onclick="simulateLoginError()">Entrar</button>
+        <span class="link" onclick="showStep('stepForgot')"
+          >Esqueci minha senha</span
+        >
+      </div>
+
+      <div id="stepForgot" class="step">
+        <h2>Recuperar Senha</h2>
+        <p>
+          Informe um número de <strong>WhatsApp ativo</strong> para receber o
+          código.
+        </p>
+        <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" />
+        <button class="btn-whatsapp" id="btnSend" onclick="handleSendCode()">
+          Enviar Código no WhatsApp
+        </button>
+        <span class="link" onclick="showStep('stepLogin')"
+          >Voltar ao login</span
+        >
+      </div>
+
+      <div id="stepCode" class="step">
+        <h2>Validar Código</h2>
+        <p>Insira o código enviado para o seu WhatsApp:</p>
+        <input
+          type="text"
+          placeholder="000 000"
+          maxlength="6"
+          style="text-align: center; font-weight: bold"
+        />
+        <input type="password" placeholder="Crie uma nova senha" />
+        <button onclick="showStep('stepSuccess')">Redefinir e Entrar</button>
+      </div>
+
+      <div id="stepSuccess" class="step" style="text-align: center">
+        <h2 style="color: var(--ws-green)">Sucesso!</h2>
+        <p>Sua senha foi alterada e você já está autenticado.</p>
+        <button onclick="location.reload()">Ir para o Pagamento</button>
+      </div>
+    </div>
+
+    <script>
+      function showStep(stepId) {
+        // Esconde erro de login ao mudar de tela
+        document.getElementById("loginError").style.display = "none";
+        document
+          .querySelectorAll(".step")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(stepId).classList.add("active");
+      }
+
+      // Simulação do Erro de Login (O "Realismo" solicitado)
+      function simulateLoginError() {
+        const errorDiv = document.getElementById("loginError");
+        const inputs = [
+          document.getElementById("userEmail"),
+          document.getElementById("userPass"),
+        ];
+
+        errorDiv.style.display = "block";
+        inputs.forEach((input) => input.classList.add("input-error"));
+
+        // Remove o destaque de erro após 3 segundos para não poluir
+        setTimeout(() => {
+          inputs.forEach((input) => input.classList.remove("input-error"));
+        }, 3000);
+      }
+
+      function handleSendCode() {
+        const phone = document.getElementById("whatsapp").value;
+        const btn = document.getElementById("btnSend");
+
+        if (phone.length < 10) {
+          alert("Informe um número válido.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader"></span> Enviando...';
+
+        setTimeout(() => {
+          showStep("stepCode");
+          btn.disabled = false;
+          btn.innerHTML = "Enviar Código no WhatsApp";
+        }, 1200);
+      }
+
+      // Máscara de Telefone
+      document
+        .getElementById("whatsapp")
+        .addEventListener("input", function (e) {
+          let x = e.target.value
+            .replace(/\D/g, "")
+            .match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+          e.target.value = !x[2]
+            ? x[1]
+            : "(" + x[1] + ") " + x[2] + (x[3] ? "-" + x[3] : "");
+        });
+    </script>
+  </body>
+</html>
