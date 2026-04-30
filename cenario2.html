@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protótipo de Caixa - Desconto Especial</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--accent-color);
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .totals {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef2f7;
+            border-radius: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .badge-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--accent-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h2>Caixa de Atendimento - Descontos</h2>
+            <p>Simulador da US02: Aplicar desconto para produtos fora da promoção relâmpago (Qtde > 5)</p>
+        </header>
+
+        <section>
+            <h3>Adicionar Item ao Carrinho</h3>
+            <div class="form-group">
+                <label for="productName">Nome do Produto:</label>
+                <input type="text" id="productName" placeholder="Ex: Pacote de Café 500g">
+            </div>
+            
+            <div class="form-group">
+                <label for="productPrice">Preço Unitário (R$):</label>
+                <input type="number" id="productPrice" step="0.01" placeholder="Ex: 12.50">
+            </div>
+
+            <div class="form-group">
+                <label for="productQty">Quantidade:</label>
+                <input type="number" id="productQty" value="1" min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="promoType">Tipo de Promoção do Produto:</label>
+                <select id="promoType">
+                    <option value="none">Nenhuma (Padrão)</option>
+                    <option value="lightning">Promoção Relâmpago</option>
+                </select>
+            </div>
+
+            <button class="btn-success" onclick="addItem()">Adicionar ao Carrinho</button>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Carrinho de Compras</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Preço Unit.</th>
+                        <th>Quantidade</th>
+                        <th>Promoção</th>
+                        <th>Total Item</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="cartItems">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">Nenhum produto adicionado.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <button class="btn-primary" onclick="applySpecialDiscount()">Verificar e Finalizar Compra</button>
+            
+            <div class="totals" id="totalsDisplay">
+                Subtotal: R$ 0.00<br>
+                Desconto Especial: R$ 0.00<br>
+                <span style="color: var(--secondary-color);">Total a Pagar: R$ 0.00</span>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addItem() {
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const qty = parseInt(document.getElementById('productQty').value);
+            const promo = document.getElementById('promoType').value;
+
+            if (!name || isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                name: name,
+                price: price,
+                qty: qty,
+                promo: promo,
+                total: price * qty
+            };
+
+            cart.push(item);
+            renderCart();
+            resetForm();
+        }
+
+        function deleteItem(id) {
+            cart = cart.filter(item => item.id !== id);
+            renderCart();
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('cartItems');
+            tbody.innerHTML = '';
+
+            if (cart.length === 0) {
+                tbody.innerHTML = <tr><td colspan="6" style="text-align: center;">Nenhum produto adicionado.</td></tr>;
+                document.getElementById('totalsDisplay').innerHTML = `
+                    Subtotal: R$ 0.00<br>
+                    Desconto Especial: R$ 0.00<br>
+                    <span style="color: var(--secondary-color);">Total a Pagar: R$ 0.00</span>
+                `;
+                return;
+            }
+
+            cart.forEach(item => {
+                const tr = document.createElement('tr');
+
+                const promoLabel = item.promo === 'lightning' 
+                    ? '<span class="badge badge-warning">Relâmpago</span>' 
+                    : '<span class="badge badge-success">Regular</span>';
+
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>R$ ${item.price.toFixed(2)}</td>
+                    <td>${item.qty}</td>
+                    <td>${promoLabel}</td>
+                    <td>R$ ${item.total.toFixed(2)}</td>
+                    <td><button class="btn-danger" style="padding:5px 10px; margin:0; width:auto;" onclick="deleteItem(${item.id})">Remover</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            const subtotal = cart.reduce((acc, item) => acc + item.total, 0);
+            
+            document.getElementById('totalsDisplay').innerHTML = `
+                Subtotal: R$ ${subtotal.toFixed(2)}<br>
+                Desconto Especial: R$ 0.00<br>
+                <span style="color: var(--secondary-color);">Total a Pagar: R$ ${subtotal.toFixed(2)}</span>
+            `;
+        }
+
+        function applySpecialDiscount() {
+            if (cart.length === 0) {
+                alert("O carrinho está vazio.");
+                return;
+            }
+
+            let subtotal = 0;
+            let discount = 0;
+
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty;
+
+                // Critério de aceite: se quantidade > 5 e NÃO está na promoção relâmpago
+                if (item.qty > 5 && item.promo !== 'lightning') {
+                    discount += itemTotal * 0.10;
+                }
+                
+                subtotal += itemTotal;
+            });
+
+            const totalToPay = subtotal - discount;
+
+            document.getElementById('totalsDisplay').innerHTML = `
+                Subtotal: R$ ${subtotal.toFixed(2)}<br>
+                Desconto Especial: -R$ ${discount.toFixed(2)}<br>
+                <span style="color: var(--secondary-color);">Total a Pagar: R$ ${totalToPay.toFixed(2)}</span>
+            `;
+        }
+
+        function resetForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productQty').value = '1';
+            document.getElementById('promoType').value = 'none';
+        }
+    </script>
+</body>
+</html>
