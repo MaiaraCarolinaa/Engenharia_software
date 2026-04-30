@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Transacao Segura - Duas Senhas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #e9ecef;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1e4668;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+        hr {
+            margin: 15px 0;
+            border-color: #dee2e6;
+        }
+        .grupo {
+            margin-bottom: 18px;
+        }
+        .grupo label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #2c3e50;
+        }
+        .grupo input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+        button {
+            width: 100%;
+            background: #2c5f8a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #1e3f5a;
+        }
+        button:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+        }
+        .caixa-resultado {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 10px;
+        }
+        .status-area {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .icone-status {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #adb5bd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .textos h3 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .textos p {
+            color: #495057;
+            font-size: 14px;
+        }
+        .detalhes-box {
+            background: #eef2f3;
+            padding: 14px;
+            border-radius: 16px;
+            margin-top: 10px;
+        }
+        .detalhes-box strong {
+            color: #1e4668;
+        }
+        .alerta-bloqueio {
+            background: #ffe3e3;
+            border-left: 5px solid #c0392b;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 12px;
+            color: #a33;
+            font-weight: bold;
+        }
+        .sucesso {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        .info-senhas {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 18px;
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        footer {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 18px;
+            color: #6c757d;
+        }
+        .conta-bloqueada {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="appContainer">
+    <h2>Validacao de Transacao</h2>
+    <p style="color: #5a6268; margin-bottom: 10px; font-size: 14px;">Sistema com duas senhas para autorizacao</p>
+    <hr>
+
+    <div class="grupo">
+        <label>Senha 1 (acesso)</label>
+        <input type="password" id="senha1Input" placeholder="Digite a primeira senha" maxlength="20">
+    </div>
+    <div class="grupo">
+        <label>Senha 2 (confirmacao)</label>
+        <input type="password" id="senha2Input" placeholder="Digite a segunda senha" maxlength="20">
+    </div>
+
+    <button id="botaoTransacao">Efetuar Transacao</button>
+
+    <div class="caixa-resultado" id="areaResultado">
+        <div class="status-area">
+            <div class="icone-status" id="iconeStatus">💰</div>
+            <div class="textos">
+                <h3 id="tituloStatus">Aguardando</h3>
+                <p id="descricaoStatus">Informe as duas senhas e clique em efetuar transacao</p>
+            </div>
+        </div>
+        <div class="detalhes-box">
+            <strong>Resultado da validacao:</strong>
+            <p id="textoDetalhe" style="margin-top: 6px;">Nenhuma tentativa ainda</p>
+        </div>
+        <div id="alertaBloqueio" style="display: none;" class="alerta-bloqueio">
+            CONTA BLOQUEADA! Senha incorreta detectada. Acesso suspenso.
+        </div>
+        <div id="alertaSucesso" style="display: none;" class="alerta-bloqueio sucesso">
+            Transacao realizada com sucesso! Movimentacao financeira concluida.
+        </div>
+    </div>
+
+    <div class="info-senhas">
+        <span>🔐 Senhas corretas: <strong>"1234"</strong> e <strong>"abcd"</strong></span>
+        <span>⚠️ Senha errada = bloqueio</span>
+    </div>
+    <footer>Sistema de seguranca: duas senhas validas necessarias para transacao</footer>
+</div>
+
+<script>
+    // senhas padrao do sistema (fixas para exemplo)
+    const SENHA_CORRETA_1 = "1234";
+    const SENHA_CORRETA_2 = "abcd";
+    
+    let contaBloqueada = false;
+    
+    let senha1Input = document.getElementById('senha1Input');
+    let senha2Input = document.getElementById('senha2Input');
+    let botaoTransacao = document.getElementById('botaoTransacao');
+    
+    let iconeStatus = document.getElementById('iconeStatus');
+    let tituloStatus = document.getElementById('tituloStatus');
+    let descricaoStatus = document.getElementById('descricaoStatus');
+    let textoDetalhe = document.getElementById('textoDetalhe');
+    let alertaBloqueio = document.getElementById('alertaBloqueio');
+    let alertaSucesso = document.getElementById('alertaSucesso');
+    let container = document.getElementById('appContainer');
+    
+    function atualizarInterfaceBloqueio() {
+        if (contaBloqueada) {
+            senha1Input.disabled = true;
+            senha2Input.disabled = true;
+            botaoTransacao.disabled = true;
+            container.classList.add('conta-bloqueada');
+            
+            iconeStatus.innerText = '🔒';
+            tituloStatus.innerText = 'Conta Bloqueada';
+            descricaoStatus.innerText = 'Acesso suspenso devido a tentativa invalida';
+            
+            if (alertaBloqueio.style.display !== 'block') {
+                alertaBloqueio.style.display = 'block';
+            }
+            alertaSucesso.style.display = 'none';
+        } else {
+            senha1Input.disabled = false;
+            senha2Input.disabled = false;
+            botaoTransacao.disabled = false;
+            container.classList.remove('conta-bloqueada');
+        }
+    }
+    
+    function limparAlertas() {
+        alertaBloqueio.style.display = 'none';
+        alertaSucesso.style.display = 'none';
+    }
+    
+    function exibirErroSenhas(senha1Errada, senha2Errada) {
+        let msg = '';
+        if (senha1Errada && senha2Errada) {
+            msg = 'Ambas as senhas estao incorretas. ';
+        } else if (senha1Errada) {
+            msg = 'Primeira senha incorreta. ';
+        } else if (senha2Errada) {
+            msg = 'Segunda senha incorreta. ';
+        }
+        
+        iconeStatus.innerText = '❌';
+        tituloStatus.innerText = 'Senha nao autorizada';
+        descricaoStatus.innerText = 'Transacao negada - senha invalida';
+        textoDetalhe.innerText = msg + 'Por questao de seguranca, a conta sera bloqueada.';
+        
+        limparAlertas();
+    }
+    
+    function exibirTransacaoSucesso() {
+        iconeStatus.innerText = '✅';
+        tituloStatus.innerText = 'Transacao Aprovada';
+        descricaoStatus.innerText = 'Senhas corretas! Movimentacao financeira autorizada.';
+        textoDetalhe.innerText = 'Transacao realizada com sucesso. Ambas as senhas estavam corretas.';
+        
+        limparAlertas();
+        alertaSucesso.style.display = 'block';
+    }
+    
+    function realizarTransacao() {
+        if (contaBloqueada) {
+            return;
+        }
+        
+        let senha1 = senha1Input.value;
+        let senha2 = senha2Input.value;
+        
+        let senha1Valida = (senha1 === SENHA_CORRETA_1);
+        let senha2Valida = (senha2 === SENHA_CORRETA_2);
+        
+        if (senha1Valida && senha2Valida) {
+            exibirTransacaoSucesso();
+            
+            setTimeout(function() {
+                senha1Input.value = '';
+                senha2Input.value = '';
+            }, 2000);
+        } else {
+            let senha1Errada = !senha1Valida;
+            let senha2Errada = !senha2Valida;
+            
+            exibirErroSenhas(senha1Errada, senha2Errada);
+            
+            contaBloqueada = true;
+            atualizarInterfaceBloqueio();
+            
+            textoDetalhe.innerText = textoDetalhe.innerText + ' A conta foi bloqueada.';
+        }
+    }
+    
+    botaoTransacao.addEventListener('click', function() {
+        if (contaBloqueada) {
+            return;
+        }
+        
+        let senha1 = senha1Input.value;
+        let senha2 = senha2Input.value;
+        
+        if (senha1 === '' || senha2 === '') {
+            iconeStatus.innerText = '⚠️';
+            tituloStatus.innerText = 'Campos vazios';
+            descricaoStatus.innerText = 'Preencha as duas senhas';
+            textoDetalhe.innerText = 'Informe a senha 1 e a senha 2 antes de efetuar a transacao.';
+            limparAlertas();
+            return;
+        }
+        
+        realizarTransacao();
+        
+        let textoOriginal = botaoTransacao.innerText;
+        botaoTransacao.innerText = 'Processando...';
+        setTimeout(function() {
+            if (!contaBloqueada) {
+                botaoTransacao.innerText = textoOriginal;
+            } else {
+                botaoTransacao.innerText = 'Conta Bloqueada';
+            }
+        }, 800);
+    });
+    
+    senha1Input.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (!contaBloqueada) {
+                botaoTransacao.click();
+            }
+        }
+    });
+    
+    senha2Input.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (!contaBloqueada) {
+                botaoTransacao.click();
+            }
+        }
+    });
+    
+    atualizarInterfaceBloqueio();
+</script>
+
+</body>
+</html>

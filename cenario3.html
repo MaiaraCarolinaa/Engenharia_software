@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Triagem Enfermagem - Pulseira</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #e9ecef;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1e4668;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+        hr {
+            margin: 15px 0;
+            border-color: #dee2e6;
+        }
+        .grupo {
+            margin-bottom: 18px;
+        }
+        .grupo label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #2c3e50;
+        }
+        .grupo input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+        button {
+            width: 100%;
+            background: #2c5f8a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #1e3f5a;
+        }
+        .caixa-resultado {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 10px;
+        }
+        .painel-pulseira {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .bola {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: #adb5bd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .textos h3 {
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+        .textos p {
+            color: #495057;
+            font-size: 14px;
+        }
+        .encaminha-box {
+            background: #eef2f3;
+            padding: 14px;
+            border-radius: 16px;
+        }
+        .encaminha-box strong {
+            color: #1e4668;
+        }
+        .alerta-vermelho {
+            background: #ffe3e3;
+            border-left: 5px solid #c0392b;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 12px;
+            color: #a33;
+            font-weight: bold;
+        }
+        .legenda-rapida {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 18px;
+            font-size: 12px;
+        }
+        .cor-legenda {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        footer {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 18px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Pulseira de Priorizacao</h2>
+    <p style="color: #5a6268; margin-bottom: 10px; font-size: 14px;">Registre os sinais vitais para definir a cor</p>
+    <hr>
+
+    <div class="grupo">
+        <label>Pressao arterial (ex: 130/85)</label>
+        <input type="text" id="pressaoPaciente" placeholder="120/80" value="118/76">
+    </div>
+    <div class="grupo">
+        <label>Temperatura (C)</label>
+        <input type="number" id="tempPaciente" step="0.1" placeholder="36.5" value="36.4">
+    </div>
+    <div class="grupo">
+        <label>Satracao O2 (%)</label>
+        <input type="number" id="spo2Paciente" step="1" placeholder="95" value="97">
+    </div>
+
+    <button id="botaoRegistrar">Registrar e definir pulseira</button>
+
+    <div class="caixa-resultado" id="areaResultado">
+        <div class="painel-pulseira">
+            <div class="bola" id="bolaCor" style="background-color: #adb5bd;"></div>
+            <div class="textos">
+                <h3 id="tituloCor">---</h3>
+                <p id="descricaoSimples">Aguardando registro...</p>
+            </div>
+        </div>
+        <div class="encaminha-box">
+            <strong>Encaminhamento:</strong>
+            <p id="textoEncaminha" style="margin-top: 6px;">Nenhum dado ainda</p>
+        </div>
+        <div id="avisoUrgente" style="display: none;" class="alerta-vermelho">
+            SATURACAO ABAIXO DE 90% - ENCAMINHAR IMEDIATAMENTE PARA EQUIPE MEDICA!
+        </div>
+    </div>
+
+    <div class="legenda-rapida">
+        <span><i class="cor-legenda" style="background: #2b8c4a;"></i> Verde</span>
+        <span><i class="cor-legenda" style="background: #f4c542;"></i> Amarelo</span>
+        <span><i class="cor-legenda" style="background: #e67e22;"></i> Laranja</span>
+        <span><i class="cor-legenda" style="background: #c0392b;"></i> Vermelho</span>
+    </div>
+    <footer>Criterio: SpO2 < 90% = encaminhamento imediato para equipe medica</footer>
+</div>
+
+<script>
+    let pressaoCampo = document.getElementById('pressaoPaciente');
+    let tempCampo = document.getElementById('tempPaciente');
+    let spo2Campo = document.getElementById('spo2Paciente');
+    let botaoCalc = document.getElementById('botaoRegistrar');
+    
+    let bolinha = document.getElementById('bolaCor');
+    let tituloCor = document.getElementById('tituloCor');
+    let descricaoPulseira = document.getElementById('descricaoSimples');
+    let textoEncaminhamento = document.getElementById('textoEncaminha');
+    let avisoEmergencia = document.getElementById('avisoUrgente');
+
+    function lerPressao(textoPressao) {
+        let limpo = textoPressao.trim().replace(/x/g, '/');
+        if (limpo.includes('/')) {
+            let partes = limpo.split('/');
+            let sistolica = Number(partes[0]);
+            let diastolica = Number(partes[1]);
+            if (!isNaN(sistolica) && !isNaN(diastolica) && sistolica > 0 && diastolica > 0) {
+                return { sist: sistolica, dias: diastolica };
+            }
+        }
+        let numeros = textoPressao.match(/\d+/g);
+        if (numeros && numeros.length >= 2) {
+            let sist = Number(numeros[0]);
+            let dias = Number(numeros[1]);
+            if (!isNaN(sist) && !isNaN(dias) && sist > 0 && dias > 0) {
+                return { sist: sist, dias: dias };
+            }
+        }
+        return null;
+    }
+
+    function definirPulseira(dadosPressao, temperatura, saturacao) {
+        if (saturacao < 90) {
+            return {
+                corHex: '#c0392b',
+                nome: 'VERMELHA',
+                desc: 'Paciente critico - saturacao baixa!',
+                encaminhamento: 'ENCAMINHAMENTO IMEDIATO para equipe medica. Urgencia maxima!',
+                emergenciaAtiva: true
+            };
+        }
+
+        let sist = dadosPressao.sist;
+        let dias = dadosPressao.dias;
+        let temp = temperatura;
+        let nivel = 'baixo';
+
+        if (sist >= 180 || dias >= 120) {
+            nivel = 'alto';
+        } else if (sist >= 160 || dias >= 100) {
+            nivel = 'medio';
+        } else if (sist >= 140 || dias >= 90) {
+            nivel = 'medio';
+        } else if (sist < 90 || dias < 60) {
+            nivel = 'alto';
+        }
+
+        if (temp > 39.2 || temp < 35.0) {
+            nivel = 'alto';
+        } else if (temp > 38.0 || temp < 36.0) {
+            if (nivel === 'baixo') nivel = 'medio';
+        }
+
+        if (saturacao >= 90 && saturacao <= 93) {
+            if (nivel === 'baixo') nivel = 'medio';
+            else if (nivel === 'medio') nivel = 'alto';
+        }
+
+        if (nivel === 'baixo') {
+            return {
+                corHex: '#2b8c4a',
+                nome: 'VERDE',
+                desc: 'Estavel. Sinais vitais dentro da normalidade.',
+                encaminhamento: 'Seguir fluxo normal de atendimento.',
+                emergenciaAtiva: false
+            };
+        } else if (nivel === 'medio') {
+            return {
+                corHex: '#f4c542',
+                nome: 'AMARELA',
+                desc: 'Atencao medica necessaria. Prioridade intermediaria.',
+                encaminhamento: 'Encaminhar para avaliacao prioritaria (fila amarela).',
+                emergenciaAtiva: false
+            };
+        } else {
+            return {
+                corHex: '#e67e22',
+                nome: 'LARANJA',
+                desc: 'Urgente! Risco moderado/alto de complicacao.',
+                encaminhamento: 'Encaminhar com prioridade para equipe medica.',
+                emergenciaAtiva: false
+            };
+        }
+    }
+
+    function atualizarSistema() {
+        let textoPress = pressaoCampo.value;
+        let tempValor = parseFloat(tempCampo.value);
+        let spo2Valor = parseInt(spo2Campo.value);
+        
+        let pressaoInterpretada = lerPressao(textoPress);
+        
+        if (!pressaoInterpretada || isNaN(tempValor) || isNaN(spo2Valor)) {
+            bolinha.style.backgroundColor = '#adb5bd';
+            tituloCor.innerText = 'Erro!';
+            descricaoPulseira.innerText = 'Verifique os dados (pressao, temperatura, saturacao)';
+            textoEncaminhamento.innerText = 'Nao foi possivel calcular. Corrija os campos.';
+            avisoEmergencia.style.display = 'none';
+            return;
+        }
+        
+        if (spo2Valor < 0) spo2Valor = 0;
+        if (spo2Valor > 100) spo2Valor = 100;
+        
+        let resultado = definirPulseira(pressaoInterpretada, tempValor, spo2Valor);
+        
+        bolinha.style.backgroundColor = resultado.corHex;
+        tituloCor.innerText = resultado.nome;
+        descricaoPulseira.innerText = resultado.desc;
+        textoEncaminhamento.innerText = resultado.encaminhamento;
+        
+        if (spo2Valor < 90) {
+            avisoEmergencia.style.display = 'block';
+        } else {
+            avisoEmergencia.style.display = 'none';
+        }
+    }
+
+    botaoCalc.addEventListener('click', function() {
+        atualizarSistema();
+        let textoBotaoOriginal = botaoCalc.innerText;
+        botaoCalc.innerText = 'Paciente triado!';
+        setTimeout(function() {
+            botaoCalc.innerText = textoBotaoOriginal;
+        }, 900);
+    });
+    
+    atualizarSistema();
+    
+    let todosInputs = [pressaoCampo, tempCampo, spo2Campo];
+    for (let i = 0; i < todosInputs.length; i++) {
+        todosInputs[i].addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                atualizarSistema();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
